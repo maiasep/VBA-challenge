@@ -1,0 +1,117 @@
+{\rtf1\ansi\ansicpg1252\cocoartf2708
+\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fswiss\fcharset0 Helvetica;}
+{\colortbl;\red255\green255\blue255;}
+{\*\expandedcolortbl;;}
+\margl1440\margr1440\vieww22820\viewh20640\viewkind0
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+
+\f0\fs24 \cf0 Sub multi_year_stocks()\
+\
+    Dim ws As Worksheet\
+    Dim ticker_name As String\
+    Dim stock_volume As Double\
+    Dim summary_ticker As Integer\
+    Dim open_price As Double\
+    Dim close_price As Double\
+    Dim year_change As Double\
+    Dim percent_change As Double\
+    Dim lastrow As Long\
+\
+    For Each ws In Worksheets\
+\
+        stock_volume = 0\
+        summary_ticker = 2\
+        open_price = ws.Cells(2, 3).Value\
+\
+        ' Label the summary table headers\
+        ws.Cells(1, 9).Value = "Ticker"\
+        ws.Cells(1, 10).Value = "Yearly Change"\
+        ws.Cells(1, 11).Value = "Percent Change"\
+        ws.Cells(1, 12).Value = "Total Stock Volume"\
+\
+        ' Before we start to loop, let's define the last row across all sheets\
+        lastrow = ws.Cells(Rows.Count, 1).End(xlUp).Row\
+\
+        ' Let's start looping\
+        For i = 2 To lastrow\
+\
+            If ws.Cells(i + 1, 1).Value <> ws.Cells(i, 1).Value Then\
+                ' Set the ticker name when it changes\
+                ticker_name = ws.Cells(i, 1).Value\
+\
+                ' Add up the sum to get the volume of the stock\
+                stock_volume = stock_volume + ws.Cells(i, 7).Value\
+\
+                ' Find year change\
+                close_price = ws.Cells(i, 6).Value\
+                year_change = close_price - open_price\
+\
+                ' Calculate percent change\
+                If open_price = 0 Then\
+                    percent_change = 0\
+                Else\
+                    percent_change = year_change / open_price\
+                End If\
+\
+                ' Print the ticker name, changes, and volume sums\
+                ws.Range("I" & summary_ticker).Value = ticker_name\
+                ws.Range("J" & summary_ticker).Value = year_change\
+                ws.Range("K" & summary_ticker).Value = percent_change\
+                ws.Range("L" & summary_ticker).Value = stock_volume\
+\
+                ' Format percentage change\
+                ws.Range("K" & summary_ticker).NumberFormat = "0.00%"\
+\
+                ' Reset everything back to zero\
+                summary_ticker = summary_ticker + 1\
+                stock_volume = 0\
+                open_price = ws.Cells(i + 1, 3).Value\
+            Else\
+                stock_volume = stock_volume + ws.Cells(i, 7).Value\
+            End If\
+        Next i\
+\
+        ' Color the summary table\
+        last_row_table = ws.Cells(Rows.Count, 9).End(xlUp).Row\
+\
+        For i = 2 To last_row_table\
+            ' Looked up the colors online to get the color code\
+            If ws.Cells(i, 10).Value > 0 Then\
+                ws.Cells(i, 10).Interior.ColorIndex = 10\
+            Else\
+                ws.Cells(i, 10).Interior.ColorIndex = 3\
+            End If\
+        Next i\
+\
+        ' The last summary table of the data set to show the greatest % increase, decrease, and volume\
+        ws.Cells(1, 16).Value = "Ticker"\
+        ws.Cells(1, 17).Value = "Value"\
+        ws.Cells(2, 15).Value = "Greatest % Increase"\
+        ws.Cells(3, 15).Value = "Greatest % Decrease"\
+        ws.Cells(4, 15).Value = "Greatest Volume"\
+\
+        ' Finding the max in the initial summary table we created\
+        max_percent_increase = Application.WorksheetFunction.Max(ws.Range("K2:K" & last_row_table))\
+        min_percent_decrease = Application.WorksheetFunction.Min(ws.Range("K2:K" & last_row_table))\
+        max_volume = Application.WorksheetFunction.Max(ws.Range("L2:L" & last_row_table))\
+\
+        ' Iterate again to find and display values\
+        For i = 2 To last_row_table\
+            If ws.Cells(i, 10).Value = max_percent_increase Then\
+                ws.Cells(2, 16).Value = ws.Cells(i, 9).Value\
+                ws.Cells(2, 17).Value = max_percent_increase\
+                ws.Cells(2, 17).NumberFormat = "0.00%"\
+            ElseIf ws.Cells(i, 10).Value = min_percent_decrease Then\
+                ws.Cells(3, 16).Value = ws.Cells(i, 9).Value\
+                ws.Cells(3, 17).Value = min_percent_decrease\
+                ws.Cells(3, 17).NumberFormat = "0.00%"\
+            ElseIf ws.Cells(i, 12).Value = max_volume Then\
+                ws.Cells(4, 16).Value = ws.Cells(i, 9).Value\
+                ws.Cells(4, 17).Value = max_volume\
+            End If\
+        Next i\
+\
+    Next ws\
+\
+End Sub\
+}
